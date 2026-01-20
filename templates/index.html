@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Recipe Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #8BC34A;
+            --bg-color: #f9fbf9;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body { font-family: 'Noto Sans JP', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 700px; width: 100%; }
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--primary-color); font-size: 2rem; margin-bottom: 5px; }
+        .subtitle { font-size: 0.9rem; color: #666; }
+        .card { background: var(--card-bg); padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        label { display: block; font-weight: bold; margin-bottom: 10px; color: #555; }
+        textarea { width: 100%; height: 120px; padding: 15px; border: 2px solid #eee; border-radius: 12px; font-size: 1rem; resize: vertical; box-sizing: border-box; }
+
+.seasoning-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-bottom: 25px;
+    background: #fdfdfd;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+}
+.seasoning-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+.seasoning-item input {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+        .mood-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            margin-top: 5px;
+        }
+        .mood-options input[type="radio"] {
+            display: none; 
+        }
+        .mood-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 5px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        input[type="radio"]:checked + .mood-btn {
+            border-color: var(--primary-color);
+            background-color: #e8f5e9;
+            color: var(--primary-color);
+            font-weight: bold;
+            transform: scale(1.05);
+        }
+
+        button { width: 100%; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border: none; padding: 15px; font-size: 1.1rem; font-weight: bold; border-radius: 12px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+        .recipe-result { background: var(--card-bg); padding: 30px; border-radius: 16px; border-left: 8px solid var(--primary-color); box-shadow: 0 4px 20px rgba(0,0,0,0.05); line-height: 1.8; white-space: pre-wrap; }
+        #loading { display: none; text-align: center; margin-top: 20px; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🍳 AI Recipe Studio</h1>
+        <p class="subtitle">冷蔵庫の余り物を魔法のディナーに</p>
+    </header>
+
+    <div class="card">
+        <form method="POST" id="recipeForm">
+            {% csrf_token %}
+            <label for="ingredients">使いたい食材</label>
+            <textarea name="ingredients" id="ingredients" placeholder="例：鶏もも肉、白菜、しめじ">{{ request.POST.ingredients }}</textarea>
+
+            <label style="margin-top: 25px;">家にある調味料（複数選択可）</label>
+<div class="seasoning-grid">
+    {% for s in common_seasonings %}
+    <div class="seasoning-item">
+        <input type="checkbox" name="seasonings" value="{{ s }}" id="s_{{ forloop.counter }}">
+        <label for="s_{{ forloop.counter }}" style="margin-bottom: 0; font-weight: normal;">{{ s }}</label>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .seasoning-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 8px;
+        margin-bottom: 20px;
+        background: #fdfdfd;
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 12px;
+    }
+    .seasoning-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.85rem;
+    }
+    .seasoning-item input {
+        cursor: pointer;
+    }
+    .seasoning-item label {
+        margin-bottom: 0;
+        cursor: pointer;
+        font-weight: normal;
+    }
+</style>
+
+            <label style="margin-top: 25px;">今の気分は？</label>
+            <div class="mood-options">
+                <input type="radio" name="mood" value="がっつり" id="mood1" checked>
+                <label for="mood1" class="mood-btn"><span>🍖</span>がっつり</label>
+
+                <input type="radio" name="mood" value="ヘルシー" id="mood2">
+                <label for="mood2" class="mood-btn"><span>🥗</span>ヘルシー</label>
+
+                <input type="radio" name="mood" value="おつまみ" id="mood3">
+                <label for="mood3" class="mood-btn"><span>🍺</span>おつまみ</label>
+            </div>
+            <button type="submit" id="submitBtn">レシピを生成する</button>
+        </form>
+
+        <div id="loading">
+            <div class="spinner"></div>
+            <p>AIが最高のレシピを執筆中...</p>
+        </div>
+    </div>
+
+    {% if recipe %}
+    <div class="recipe-result">
+        <h2>✨ 本日の提案</h2>
+        {{ recipe }}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const form = document.getElementById('recipeForm');
+    const btn = document.getElementById('submitBtn');
+    const loading = document.getElementById('loading');
+
+    form.onsubmit = function() {
+        btn.style.display = 'none';
+        loading.style.display = 'block';
+    };
+</script>
+
+</body>
+</html>
