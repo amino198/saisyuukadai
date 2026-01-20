@@ -109,3 +109,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 ALLOWED_HOSTS = ['saisyuukadai-d5nv.onrender.com', 'localhost', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://saisyuukadai-d5nv.onrender.com'
+]
